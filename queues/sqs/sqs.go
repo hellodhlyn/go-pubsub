@@ -82,7 +82,7 @@ func (q *SQSQueue) FetchMessages() ([]string, error) {
 	entries := make([]*sqs.DeleteMessageBatchRequestEntry, len(output.Messages))
 	for i, m := range output.Messages {
 		messages[i] = *m.Body
-		entries[i] = &sqs.DeleteMessageBatchRequestEntry{Id: m.MessageId}
+		entries[i] = &sqs.DeleteMessageBatchRequestEntry{Id: aws.String(uuid.New().String()), ReceiptHandle: m.ReceiptHandle}
 	}
 
 	_, err = q.Client.DeleteMessageBatch(&sqs.DeleteMessageBatchInput{Entries: entries, QueueUrl: &q.URL})
