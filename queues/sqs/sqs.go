@@ -65,6 +65,7 @@ func (q *SQSQueue) putMessages(messages []string) error {
 	return err
 }
 
+// FetchMessages dequeue messages from SQS queue using long polling.
 func (q *SQSQueue) FetchMessages() ([]string, error) {
 	output, err := q.Client.ReceiveMessage(&sqs.ReceiveMessageInput{
 		MaxNumberOfMessages: aws.Int64(10),
@@ -82,7 +83,7 @@ func (q *SQSQueue) FetchMessages() ([]string, error) {
 	entries := make([]*sqs.DeleteMessageBatchRequestEntry, len(output.Messages))
 	for i, m := range output.Messages {
 		messages[i] = *m.Body
-		entries[i] = &sqs.DeleteMessageBatchRequestEntry{Id: aws.String(uuid.New().String()), ReceiptHandle: m.ReceiptHandle}
+		entries[i] = &sqs.DeleteMessageBatchRequestEntry{Id: m.MessageId, ReceiptHandle: m.ReceiptHandle}
 	}
 
 	_, err = q.Client.DeleteMessageBatch(&sqs.DeleteMessageBatchInput{Entries: entries, QueueUrl: &q.URL})

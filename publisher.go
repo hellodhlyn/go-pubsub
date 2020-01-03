@@ -15,7 +15,7 @@ func (p *Publisher) Publish(message string) error {
 	return p.queue.PutMessages([]string{message})
 }
 
-// Publish puts multiple messages into the queue.
+// PublishMany puts multiple messages into the queue.
 func (p *Publisher) PublishMany(messages []string) error {
 	return p.queue.PutMessages(messages)
 }
