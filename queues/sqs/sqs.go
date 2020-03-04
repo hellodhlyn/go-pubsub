@@ -54,7 +54,7 @@ func (q *SQSQueue) putMessages(messages []string) error {
 	for i, message := range messages {
 		entries[i] = &sqs.SendMessageBatchRequestEntry{
 			Id:          aws.String(uuid.New().String()),
-			MessageBody: &message,
+			MessageBody: aws.String(message),
 		}
 	}
 
