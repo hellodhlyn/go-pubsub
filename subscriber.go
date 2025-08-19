@@ -1,10 +1,7 @@
 package pubsub
 
 import (
-	"errors"
-	"os"
-	"os/signal"
-	"syscall"
+	"context"
 )
 
 // Subscriber fetches messages from the message queue and passes it to the
@@ -19,27 +16,22 @@ func NewSubscriber(queue Queue) *Subscriber {
 }
 
 // SubscribeFunc fetch messages from the queue, and pass it to the given
-// function. This is blocking action; it unblocks if either of SIGINT,
-// SIGTERM, SIGKILL has received.
-func (s *Subscriber) SubscribeFunc(fn func(string)) error {
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
-
+// function.
+//
+// The loop runs until an error occurs or the given context is canceled.
+// If FetchMessagesWithContext returns an error, the function stops and
+// returns that error immediately.
+//
+// The handler function is called once for each message retrieved.
+func (s *Subscriber) SubscribeFunc(ctx context.Context, fn func(string)) error {
 	for {
-		messages, err := s.queue.FetchMessages()
+		messages, err := s.queue.FetchMessagesWithContext(ctx)
 		if err != nil {
 			return err
 		}
 
 		for _, msg := range messages {
 			fn(msg)
-		}
-
-		select {
-		case sig := <-sigCh:
-			return errors.New("received signal: " + sig.String())
-		default:
-			continue
 		}
 	}
 }
