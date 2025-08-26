@@ -14,15 +14,21 @@ type SQSQueue struct {
 	Client sqsiface.SQSAPI
 }
 
+type SQSQueueConfig struct {
+	QueueName  string
+	Region     string
+	MaxRetries int
+}
+
 // NewSQSQueue creates a Queue with Amazon SQS.
-func NewSQSQueue(queueName string, region string) (*SQSQueue, error) {
-	sess, err := session.NewSession(&aws.Config{Region: &region})
+func NewSQSQueue(cfg *SQSQueueConfig) (*SQSQueue, error) {
+	sess, err := session.NewSession(&aws.Config{Region: &cfg.Region, MaxRetries: &cfg.MaxRetries})
 	if err != nil {
 		return nil, err
 	}
 	client := sqs.New(sess)
 
-	output, err := client.GetQueueUrl(&sqs.GetQueueUrlInput{QueueName: &queueName})
+	output, err := client.GetQueueUrl(&sqs.GetQueueUrlInput{QueueName: &cfg.QueueName})
 	if err != nil {
 		return nil, err
 	}
